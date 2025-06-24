@@ -1,0 +1,20 @@
+package com.queue.auth_service.Entity;
+
+import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Entity
+@Table(name = "users")
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @Column(unique = true, nullable = false)
+    private String phone;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
+}
