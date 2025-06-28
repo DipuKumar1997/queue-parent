@@ -70,6 +70,9 @@ public class Conversation {
     // Key: userId, Value: unreadCount
     private java.util.Map<String, Integer> unreadCounts = new java.util.HashMap<>();
 
+    public Conversation() {
+        // Required by Spring Data MongoDB
+    }
     // Constructor for one-to-one conversation
     public Conversation(String user1Id, String user2Id) {
         this.participants.add(user1Id);
