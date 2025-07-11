@@ -65,13 +65,15 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable) // ✅ correct modern style
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll() // allow OTP endpoints
-                        .anyRequest().denyAll() // no other endpoints should be hit directly
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .anyRequest().denyAll()
                 )
                 .build();
     }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {

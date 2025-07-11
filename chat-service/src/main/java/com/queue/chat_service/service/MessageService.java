@@ -32,11 +32,7 @@ public class MessageService {
             logger.error("Attempted to provision user with null or empty userId.");
             throw new IllegalArgumentException("User ID cannot be null or empty.");
         }
-        if (username == null || username.trim().isEmpty()) {
-            logger.warn("Attempted to provision user with null or empty username for ID: {}", userId);
-            // Decide policy: should this be an error, or fallback to a default username?
-            username = "Set your Username here "; // Example fallback
-        }
+
         if (phone == null || phone.trim().isEmpty()) {
             logger.warn("Attempted to provision user with null or empty phone for ID: {}", userId);
         }
@@ -50,11 +46,9 @@ public class MessageService {
             logger.debug("Updated user details: {}", user);
             return userRepository.save(user); // Save updated existing user
         } else {
-            // --- 3. New User Creation logic ---
+
             logger.info("Provisioning new chat user: {}", userId);
 
-            // Assuming a constructor `new User(id, username, phone)` also sets other defaults.
-            // If not, ensure default values for all fields are explicitly set here.
             User newUser = new User(userId, username, phone); // This constructor should set createdAt, lastOnline, empty conversations
             newUser.setCreatedAt(LocalDateTime.now()); // Ensure this is set on creation
             newUser.setLastOnline(LocalDateTime.now()); // Set initial last online

@@ -1,8 +1,8 @@
-package com.queue.chat_service.contoller;
+package com.queue.chat_service.controller;
 
-//import com.chat.app.model.User;
-//import com.chat.app.service.MessageService;
+
 import com.queue.chat_service.model.User;
+import com.queue.chat_service.security.CustomUserDetails;
 import com.queue.chat_service.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,28 +14,27 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v1/users") // A base path for user-related REST endpoints
-//@CrossOrigin(origins = "http://localhost:3000") // Allow your React app to connect
+@RequestMapping("/api/v1/users")
 public class UserController {
 
     @Autowired
     private MessageService messageService;
-
-    //@RequestBody User userDetailsFromAuth
+//  @RequestHeader("X-User-Id") String userId,
+//   @RequestHeader(value = "X-User-Name", required = false) Optional<String> username,
+//@RequestHeader(value = "X-User-Phone", required = false) Optional<String> phone
     @PostMapping("/provision")
     public ResponseEntity<User> provisionUser(
-            @AuthenticationPrincipal String userId,
-            // Make username and phone optional, so the request doesn't fail if the header is missing
-            @RequestHeader(value = "X-User-Name", required = false) Optional<String> username,
-            @RequestHeader(value = "X-User-Phone", required = false) Optional<String> phone
-
+            @AuthenticationPrincipal CustomUserDetails principal
     ) {
+        String userId = principal.getUserId();  // From CustomUserDetails
+        String username = principal.getUsername(); // Typically same as userId
+        String phone = principal.getPhoneNumber();    // Custom getter
+
         System.out.println("Attempting to provision user with ID: " + userId +
                 ", Username: " + username + ", Phone: " + phone);
 
-        String actualUsername = username.orElse(null);
-        String actualPhone = phone.orElse(null);
-        // userDetailsFromAuth should contain id (UUID string), username, and phone from the Auth Service
+        String actualUsername = username;
+        String actualPhone = phone;
         User provisionedUser = messageService.provisionChatUser(userId, actualUsername, actualPhone);
         if (provisionedUser == null) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -43,16 +42,20 @@ public class UserController {
         }
         return ResponseEntity.ok(provisionedUser);
     }
-
+//@AuthenticationPrincipal String userId
     @GetMapping("/me")
-    public ResponseEntity<User> getCurrentUser(@AuthenticationPrincipal String userId) {
-        return messageService.findUserById(userId)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    public ResponseEntity<String> getCurrentUser() {
+        String currentUserId = "some-user-id"; // TE
+//        return messageService.findUserById(userId)
+//                .map(ResponseEntity::ok)
+//                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        return  ResponseEntity.ok (currentUserId);
     }
 
     @GetMapping("/getAllUsers")
-    public ResponseEntity<List<User>> getAllOtherUsers(@AuthenticationPrincipal String currentUserId) {
+    public ResponseEntity<?> getAllOtherUsers(@AuthenticationPrincipal CustomUserDetails principal) {
+        System.out.println ("lets see what i et in currentUser Id: ");
+        String currentUserId = principal.getUserId();
         System.out.println (currentUserId);
         List<User> users = messageService.findAllUsersExcept(currentUserId);
         return ResponseEntity.ok(users);

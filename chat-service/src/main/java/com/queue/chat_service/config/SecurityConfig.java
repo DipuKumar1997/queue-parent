@@ -1,10 +1,10 @@
 package com.queue.chat_service.config;
 
-//import com.queue.chat_service.security.TokenAuthenticationFilter;
-//import com.queue.chat_service.security.TokenAuthenticationFilter;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.queue.chat_service.security.TokenAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -14,56 +14,57 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-import org.springframework.security.core.userdetails.User; // New import
-import org.springframework.security.core.userdetails.UserDetails; // New import
-import org.springframework.security.core.userdetails.UserDetailsService; // New import
-import org.springframework.security.provisioning.InMemoryUserDetailsManager; // New import
 
-
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-//
-//    @Autowired
-//    private TokenAuthenticationFilter tokenAuthenticationFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            TokenAuthenticationFilter tokenAuthenticationFilter // Inject your custom filter
+    ) throws Exception {
         http
-                .csrf( AbstractHttpConfigurer::disable ) // Disable CSRF for stateless API
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/ws/**").permitAll ()
-                        .requestMatchers("/api/**").permitAll()
-                        .anyRequest().permitAll ()
+                .csrf(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+
+                .authorizeHttpRequests(auth -> auth
+                                .requestMatchers( HttpMethod.OPTIONS, "/**").permitAll() // 💥 allow preflight
+                        .requestMatchers("/ws/**").permitAll()
+                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/users/provision").authenticated() // Require
+                                .requestMatchers("/api/v1/users/getAllUsers").authenticated() // ✅ explicitly protected
+//                        .requestMatchers("/api/**").permitAll()
+                        .anyRequest().authenticated()
                 )
+//                .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Use stateless sessions for JWT
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );
-//        http.addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        http.addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
-    @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails user = User.withUsername("dummyUser")
-                .password("{noop}dummyPassword") // {noop} means no password encoding
-                .roles("NONE") // No roles needed for this dummy user
-                .build();
-        return new InMemoryUserDetailsManager(user);
-    }
+}
+
 //    @Bean
 //    public CorsFilter corsFilter() {
 //        CorsConfiguration config = new CorsConfiguration();
-//        config.setAllowedOrigins(List.of("http://localhost:5500","http://127.0.0.1:5500"));
-//        config.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
-//        config.setAllowedHeaders(List.of("*"));
+//        config.setAllowedOrigins(List.of(
+//                "http://localhost:3000",
+//                "http://localhost:5500",
+//                "http://127.0.0.1:5500",
+//                "http://localhost:63342"
+//        ));
+//        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+//        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept"));
 //        config.setAllowCredentials(true);
 //
 //        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 //        source.registerCorsConfiguration("/**", config);
 //        return new CorsFilter(source);
 //    }
-
-}

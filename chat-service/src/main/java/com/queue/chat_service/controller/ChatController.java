@@ -1,4 +1,4 @@
-//package com.queue.chat_service.contoller;
+//package com.queue.chat_service.controller;
 //
 ////import com.chat.app.model.Conversation;
 ////import com.chat.app.model.Message;
@@ -103,7 +103,7 @@
 //}
 //
 //
-//package com.queue.chat_service.contoller; // Note: Potential typo, usually 'controller'
+//package com.queue.chat_service.controller; // Note: Potential typo, usually 'controller'
 //
 //import com.queue.chat_service.model.Conversation;
 //import com.queue.chat_service.model.Message;
@@ -263,17 +263,17 @@
 //    }
 //}
 
-package com.queue.chat_service.contoller; // Note: Potential typo, usually 'controller'
+package com.queue.chat_service.controller; // Note: Potential typo, usually 'controller'
 
 import com.queue.chat_service.model.Conversation;
 import com.queue.chat_service.model.Message;
 //import com.queue.chat_service.service.MessageService;
+import com.queue.chat_service.security.CustomUserDetails;
 import com.queue.chat_service.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -283,14 +283,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller // Using @Controller because it contains @MessageMapping methods
-@RequestMapping("/api/v1/chat") // Base path for REST endpoints
-//@CrossOrigin(origins = "http://localhost:3000") // Allow your React app to connect (uncomment if needed)
+@Controller
+@RequestMapping("/api/v1/chat")
 public class ChatController {
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate; // For sending messages to specific topics/users
-//
+
     @Autowired
     private MessageService messageService;
 //
@@ -323,40 +322,40 @@ public class ChatController {
 //        return ResponseEntity.ok(conversations);
 //    }
 //
-//    // REST endpoint to get messages for a specific conversation
-//    @GetMapping("/messages/{conversationId}")
-//    public ResponseEntity<List<Message>> getConversationMessages(@PathVariable String conversationId) {
-//        List<Message> messages = messageService.getMessagesByConversationId(conversationId);
-//        return ResponseEntity.ok(messages);
-//    }
+    // REST endpoint to get messages for a specific conversation
+    @GetMapping("/messages/{conversationId}")
+    public ResponseEntity<List<Message>> getConversationMessages(@PathVariable String conversationId) {
+        List<Message> messages = messageService.getMessagesByConversationId(conversationId);
+        return ResponseEntity.ok(messages);
+    }
 //
 //    // REST endpoint to get or create a one-to-one conversation
-//    @PostMapping("/conversation/one-to-one/{recipientId}")
-//    public ResponseEntity<Conversation> getOrCreateOneToOneConversation(
-//            @AuthenticationPrincipal UserDetails principal, // <--- CHANGED TO UserDetails
-//            @PathVariable String recipientId) {
-//
-//        // Debugging: Check SecurityContextHolder content immediately at method entry
-//        System.out.println("Debugging getOrCreateOneToOneConversation: SecurityContextHolder Authentication: " + SecurityContextHolder.getContext().getAuthentication());
-//
-//        String senderId = null;
-//        if (principal != null) {
-//            senderId = principal.getUsername(); // Get the userId from UserDetails
-//        } else {
-//            System.err.println("ERROR: @AuthenticationPrincipal is null for getOrCreateOneToOneConversation. This means authentication failed.");
-//            return ResponseEntity.status(401).build(); // Unauthorized
-//        }
-//
-//        // Additional check for "anonymousUser" if it gets through
-//        if ("anonymousUser".equals(senderId)) {
-//            System.err.println("ERROR: Anonymous user trying to create conversation.");
-//            return ResponseEntity.status(401).build(); // Unauthorized
-//        }
-//
-//        Conversation conversation = messageService.getOrCreateOneToOneConversation(senderId, recipientId);
-//        return ResponseEntity.ok(conversation);
-//    }
-//
+    @PostMapping("/conversation/one-to-one/{recipientId}")
+    public ResponseEntity<Conversation> getOrCreateOneToOneConversation(
+            @AuthenticationPrincipal CustomUserDetails principal,// <--- CHANGED TO UserDetails
+            @PathVariable String recipientId) {
+
+        // Debugging: Check SecurityContextHolder content immediately at method entry
+        System.out.println("Debugging getOrCreateOneToOneConversation: SecurityContextHolder Authentication: " + SecurityContextHolder.getContext().getAuthentication());
+
+        String senderId = null;
+        if (principal != null) {
+            senderId = principal.getUserId (); // Get the userId from UserDetails
+        } else {
+            System.err.println("ERROR: @AuthenticationPrincipal is null for getOrCreateOneToOneConversation. This means authentication failed.");
+            return ResponseEntity.status(401).build(); // Unauthorized
+        }
+
+        // Additional check for "anonymousUser" if it gets through
+        if ("anonymousUser".equals(senderId)) {
+            System.err.println("ERROR: Anonymous user trying to create conversation.");
+            return ResponseEntity.status(401).build(); // Unauthorized
+        }
+
+        Conversation conversation = messageService.getOrCreateOneToOneConversation(senderId, recipientId);
+        return ResponseEntity.ok(conversation);
+    }
+
 //    // REST endpoint to mark messages as read
 //    @PostMapping("/mark-read/{conversationId}")
 //    public ResponseEntity<Void> markMessagesAsRead(@PathVariable String conversationId, @AuthenticationPrincipal UserDetails principal) { // <--- CHANGED TO UserDetails
@@ -378,9 +377,9 @@ public class ChatController {
 //        return ResponseEntity.ok().build();
 //    }
 
+    /*
     @MessageMapping("/chat.sendMessage") // STOMP destination: /app/chat.sendMessage
     public void sendMessage(@Payload Message chatMessage) { // <--- CHANGED TO UserDetails
-        // String senderId = SecurityContextHolder.getContext().getAuthentication().getName();
         Message savedMessage = messageService.saveMessage(
                 chatMessage.getConversationId(),
                 chatMessage.getSenderId (), // Use the authenticated senderId
@@ -397,6 +396,28 @@ public class ChatController {
 //        messagingTemplate.convertAndSendToUser( savedMessage.getSenderId(), "/queue/messages", savedMessage);
 //        messagingTemplate.convertAndSend("/user/" + savedMessage.getSenderId() + "/queue/messages", savedMessage);
     }
+*/
+    @MessageMapping("/chat.sendMessage")
+    public void sendMessage(@Payload Message chatMessage,
+                            @AuthenticationPrincipal String authenticatedUserId) {
+
+        Message savedMessage = messageService.saveMessage(
+                chatMessage.getConversationId(),
+                authenticatedUserId, // <- SECURE source of senderId
+                chatMessage.getRecipientId(),
+                chatMessage.getContent()
+        );
+        // Send to recipient
+        messagingTemplate.convertAndSendToUser(savedMessage.getRecipientId(), "/queue/messages", savedMessage);
+        System.out.println("----------------------------");
+        System.out.println(savedMessage.getSenderId() + " : " + savedMessage.getContent());
+        System.out.println("----------------------------");
+
+        // Send back to sender for UI update
+        messagingTemplate.convertAndSendToUser(savedMessage.getSenderId(), "/queue/messages", savedMessage);
+    }
+
+
 
     // WebSocket endpoint for adding user to active connections (e.g., for online status)
     @MessageMapping("/chat.addUser") // STOMP destination: /app/chat.addUser

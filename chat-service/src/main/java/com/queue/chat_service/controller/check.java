@@ -1,4 +1,4 @@
-//package com.queue.chat_service.contoller;
+//package com.queue.chat_service.controller;
 //
 ////import com.queue.chat_service.service.AuthServiceProxy;
 //import org.springframework.beans.factory.annotation.Autowired;

@@ -1,19 +1,19 @@
 ////package com.queue.chat_service.config;
 ////
 //////import com.chat.app.service.AuthServiceProxy;
-//////import com.chat.app.service.MessageService;
-//////import com.chat.app.service.WebSocketSessionManager;
-////import com.queue.chat_service.service.AuthServiceProxy;
-////import com.queue.chat_service.service.MessageService;
-////import org.springframework.beans.factory.annotation.Autowired;
-////import org.springframework.context.event.EventListener;
-////import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-////import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-////import org.springframework.stereotype.Component;
-////import org.springframework.web.socket.messaging.SessionConnectEvent;
-////import org.springframework.web.socket.messaging.SessionDisconnectEvent;
-////
-////@Component
+////import com.chat.app.service.MessageService;
+////import com.chat.app.service.WebSocketSessionManager;
+//import com.queue.chat_service.service.AuthServiceProxy;
+//import com.queue.chat_service.service.MessageService;
+//import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.context.event.EventListener;
+//import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+//import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+//import org.springframework.stereotype.Component;
+//import org.springframework.web.socket.messaging.SessionConnectEvent;
+//import org.springframework.web.socket.messaging.SessionDisconnectEvent;
+//
+//@Component
 ////public class WebSocketSessionEventListener {
 ////
 ////    @Autowired
@@ -89,71 +89,71 @@
 ////        }
 ////    }
 ////}
-//
-//package com.queue.chat_service.config;
-//
-//import com.queue.chat_service.service.MessageService;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.context.event.EventListener;
-//import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-//import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-//import org.springframework.stereotype.Component;
-//import org.springframework.web.socket.messaging.SessionConnectEvent;
-//import org.springframework.web.socket.messaging.SessionDisconnectEvent;
-//
-//@Component
-//public class WebSocketSessionEventListener {
-//
-//    @Autowired
-//    private WebSocketSessionManager sessionManager;
-//
-//    @Autowired
-//    private MessageService messageService;
-//
-//    @EventListener
-//    public void handleWebSocketConnectListener(SessionConnectEvent event) {
-//        SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.wrap(event.getMessage());
-//        String sessionId = headers.getSessionId();
-//
-//        // ✅ Extract user info from API Gateway injected headers
-//        String userId = headers.getFirstNativeHeader("X-User-Id");
-//        String phone = headers.getFirstNativeHeader("X-User-Phone");
-//        String username = headers.getFirstNativeHeader("X-User-Username");
-//
-//        if (userId != null) {
-//            // ✅ Provision user if needed
-//            messageService.provisionChatUser(userId,
-//                    (username != null && !username.isEmpty()) ? username : phone,
-//                    phone);
-//
-//            // ✅ Set authentication context
-//            UsernamePasswordAuthenticationToken authentication =
-//                    new UsernamePasswordAuthenticationToken(userId, null, null);
-//            headers.setUser(authentication);
-//
-//            // ✅ Register session
-//            sessionManager.addSession(userId, sessionId);
-//            messageService.updateLastOnline(userId);
-//
-//            System.out.println("✅ User " + userId + " connected to WebSocket. Session: " + sessionId);
-//        } else {
-//            // ❌ No userId — reject connection or log error
-//            System.err.println("❌ WebSocket connection denied. Missing X-User-Id header. Session: " + sessionId);
-//            // You could force close the connection or send an error frame if needed
-//        }
-//    }
-//
-//    @EventListener
-//    public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
-//        SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.wrap(event.getMessage());
-//        String sessionId = headers.getSessionId();
-//
-//        String userId = sessionManager.getUserId(sessionId);
-//        sessionManager.removeSession(sessionId);
-//
-//        if (userId != null) {
-//            messageService.updateLastOnline(userId);
-//            System.out.println("ℹ️ User " + userId + " disconnected from WebSocket. Session: " + sessionId);
-//        }
-//    }
-//}
+
+package com.queue.chat_service.config;
+
+import com.queue.chat_service.service.MessageService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.stereotype.Component;
+import org.springframework.web.socket.messaging.SessionConnectEvent;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
+
+@Component
+public class WebSocketSessionEventListener {
+
+    @Autowired
+    private WebSocketSessionManager sessionManager;
+
+    @Autowired
+    private MessageService messageService;
+
+    @EventListener
+    public void handleWebSocketConnectListener(SessionConnectEvent event) {
+        SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.wrap(event.getMessage());
+        String sessionId = headers.getSessionId();
+
+        // ✅ Extract user info from API Gateway injected headers
+        String userId = headers.getFirstNativeHeader("X-User-Id");
+        String phone = headers.getFirstNativeHeader("X-User-Phone");
+        String username = headers.getFirstNativeHeader("X-User-Username");
+
+        if (userId != null) {
+            // ✅ Provision user if needed
+            messageService.provisionChatUser(userId,
+                    (username != null && !username.isEmpty()) ? username : phone,
+                    phone);
+
+            // ✅ Set authentication context
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(userId, null, null);
+            headers.setUser(authentication);
+
+            // ✅ Register session
+            sessionManager.addSession(userId, sessionId);
+            messageService.updateLastOnline(userId);
+
+            System.out.println("✅ User " + userId + " connected to WebSocket. Session: " + sessionId);
+        } else {
+            // ❌ No userId — reject connection or log error
+            System.err.println("❌ WebSocket connection denied. Missing X-User-Id header. Session: " + sessionId);
+            // You could force close the connection or send an error frame if needed
+        }
+    }
+
+    @EventListener
+    public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
+        SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.wrap(event.getMessage());
+        String sessionId = headers.getSessionId();
+
+        String userId = sessionManager.getUserId(sessionId);
+        sessionManager.removeSession(sessionId);
+
+        if (userId != null) {
+            messageService.updateLastOnline(userId);
+            System.out.println("ℹ️ User " + userId + " disconnected from WebSocket. Session: " + sessionId);
+        }
+    }
+}

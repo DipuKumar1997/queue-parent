@@ -1,12 +1,14 @@
-//package com.queue.api_gateway.contoller; // Replace with your actual Gateway package
+//package com.queue.api_gateway.controller; // Replace with your actual Gateway package
 //
 //import io.jsonwebtoken.Claims;
 //import io.jsonwebtoken.Jwts;
 //import io.jsonwebtoken.security.SignatureException;
+//import jakarta.annotation.PostConstruct;
 //import org.springframework.beans.factory.annotation.Value;
 //import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 //import org.springframework.cloud.gateway.filter.GlobalFilter;
 //import org.springframework.core.Ordered;
+//import org.springframework.core.io.ClassPathResource;
 //import org.springframework.http.HttpHeaders; // Import HttpHeaders
 //import org.springframework.http.HttpStatus;
 //import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -24,8 +26,12 @@
 //@Component
 //public class CustomAuthGlobalFilter implements GlobalFilter, Ordered {
 //
-//    @Value("${jwt.public.key}")
-//    private String publicKeyPem;
+//        private String publicKeyPem;
+//        @PostConstruct
+//        public void init() throws Exception {
+//            ClassPathResource resource = new ClassPathResource("public_key.pem");
+//            publicKeyPem = new String(resource.getInputStream().readAllBytes());
+//        }
 //
 //    private PublicKey publicKey;
 //
@@ -49,12 +55,14 @@
 //
 //    @Override
 //    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+//        System.out.println("✅ Gateway: CustomAuthGlobalFilter triggered");
 //        String path = exchange.getRequest().getURI().getPath();
 //
 //        List<String> exemptedPaths = List.of(
 //                "/api/v1/auth/send-otp",
 //                "/api/v1/auth/verify-otp",
-//                "/favicon.ico"
+//                "/favicon.ico",
+//                "/ws/"
 //        );
 //
 //        if (exemptedPaths.stream().anyMatch(path::startsWith)) {
@@ -68,13 +76,8 @@
 //        if (authHeader != null && authHeader.startsWith("Bearer ")) {
 //            String token = authHeader.substring(7);
 //            try {
-////                Claims claims = Jwts.parserBuilder()
-////                        .setSigningKey(getPublicKey())
-////                        .build()
-////                        .parseClaimsJws(token)
-////                        .getBody();
 //                Claims claims = Jwts.parser()
-//                        .verifyWith(publicKey) // Recommended: use verifyWith for PublicKey
+//                        .verifyWith(getPublicKey()) // Recommended: use verifyWith for PublicKey
 //                        .build()
 //                        .parseSignedClaims(token)
 //                        .getPayload();
@@ -88,25 +91,19 @@
 //                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
 //                    return exchange.getResponse().setComplete();
 //                }
-//
-//                // Mutate the request to add custom headers BEFORE forwarding
-//                // This is for both regular HTTP and the initial HTTP phase of WebSocket
 //                Consumer<HttpHeaders> httpHeaders = httpHeaders1 -> {
 //                    httpHeaders1.set("X-User-Id", userId);
 //                    if (phone != null) httpHeaders1.set("X-User-Phone", phone);
 //                    if (username != null) httpHeaders1.set("X-User-Username", username);
 //                };
-//
-//                // CRITICAL FOR WEBSOCKETS:
-//                // Ensure the Authorization header is also passed along, as SockJS and
-//                // Spring's WebSocket layer might implicitly look for it during upgrade.
-//                // It's also good practice for any non-GET HTTP methods in REST.
+//                System.out.println ("====start=====");
+//                System.out.println ("httpHeaders: " + httpHeaders);
+//                System.out.println (httpHeaders.toString ());
+//                System.out.println ("=====end=====");
 //                Consumer<HttpHeaders> allHeadersConsumer = headers -> {
 //                    httpHeaders.accept(headers); // Apply our custom headers
 //                    headers.set(HttpHeaders.AUTHORIZATION, authHeader); // Ensure Authorization header is present
 //                };
-//
-//
 //                ServerHttpRequest request = exchange.getRequest().mutate()
 //                        .headers(allHeadersConsumer) // Apply all headers
 //                        .build();
