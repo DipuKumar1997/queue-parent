@@ -27,6 +27,7 @@ import java.util.List;
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+
     private PublicKey publicKey;
 
     @PostConstruct
@@ -55,8 +56,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .addInterceptors(new LoggingHandshakeInterceptor())
-//                .setAllowedOrigins("http://localhost:3000")
+//                .addInterceptors(new LoggingHandshakeInterceptor())
+                .setAllowedOriginPatterns("https://yourfrontend.com", "http://localhost:3000")
                 .withSockJS();
     }
 

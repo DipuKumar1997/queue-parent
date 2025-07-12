@@ -59,12 +59,14 @@ function ChatHomePage() {
     if (stompClientRef.current?.connected) {
       stompClientRef.current.deactivate();
     }
-
+    console.log("successfully hhit at this point ");
+    //${BACKEND_URI_PROTECTED}/ws
     const client = new Client({
-      webSocketFactory: () => new SockJS(`${BACKEND_URI_PROTECTED}/ws`),
+      webSocketFactory: () => new SockJS(`http://localhost:8082/ws`),
       connectHeaders: {
         Authorization: `Bearer ${jwtToken}`
       },
+      
       onConnect: () => {
         console.log('Connected via STOMP');
 

@@ -185,7 +185,7 @@
 //
 
 
-
+/*
 package com.queue.api_gateway.filter;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -252,3 +252,4 @@ public class CustomAuthGatewayFilterFactory extends AbstractGatewayFilterFactory
         // Empty for now
     }
 }
+*/

@@ -293,35 +293,6 @@ public class ChatController {
     @Autowired
     private MessageService messageService;
 //
-//    // REST endpoint to get user conversations
-//    @GetMapping("/conversations")
-//    public ResponseEntity<List<Conversation>> getUserConversations() {
-//        // Retrieve the authenticated principal
-//        Object principalObject = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//        String userId;
-//
-//        // Ensure the principal is a UserDetails object as set by our filters
-//        if (principalObject instanceof UserDetails) {
-//            userId = ((UserDetails) principalObject).getUsername();
-//        } else {
-//            // Fallback for cases where a String principal might be set (e.g., "anonymousUser")
-//            // Or handle unauthenticated/unexpected principal type
-//            System.err.println("ERROR: Principal in SecurityContextHolder is not UserDetails for /conversations: " + principalObject.getClass().getName() + " -> " + principalObject.toString());
-//            if (principalObject instanceof String) {
-//                userId = (String) principalObject; // Will likely be "anonymousUser" if auth failed
-//            } else {
-//                return ResponseEntity.status(401).build(); // Unauthorized
-//            }
-//        }
-//
-//        System.out.println("userId in conversations (from SecurityContextHolder): " + userId);
-//        if ("anonymousUser".equals(userId)) {
-//            return ResponseEntity.status(401).build(); // Explicitly reject anonymous access
-//        }
-//        List<Conversation> conversations = messageService.getUserConversations(userId);
-//        return ResponseEntity.ok(conversations);
-//    }
-//
     // REST endpoint to get messages for a specific conversation
     @GetMapping("/messages/{conversationId}")
     public ResponseEntity<List<Message>> getConversationMessages(@PathVariable String conversationId) {
@@ -509,3 +480,35 @@ public class ChatController {
 //        System.out.println("SecurityContextHolder Authentication: " + SecurityContextHolder.getContext().getAuthentication());
 //        System.out.println ("-------------------------------------------------------");
 //  */
+
+
+
+//    // REST endpoint to get user conversations
+//    @GetMapping("/conversations")
+//    public ResponseEntity<List<Conversation>> getUserConversations() {
+//        // Retrieve the authenticated principal
+//        Object principalObject = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//        String userId;
+//
+//        // Ensure the principal is a UserDetails object as set by our filters
+//        if (principalObject instanceof UserDetails) {
+//            userId = ((UserDetails) principalObject).getUsername();
+//        } else {
+//            // Fallback for cases where a String principal might be set (e.g., "anonymousUser")
+//            // Or handle unauthenticated/unexpected principal type
+//            System.err.println("ERROR: Principal in SecurityContextHolder is not UserDetails for /conversations: " + principalObject.getClass().getName() + " -> " + principalObject.toString());
+//            if (principalObject instanceof String) {
+//                userId = (String) principalObject; // Will likely be "anonymousUser" if auth failed
+//            } else {
+//                return ResponseEntity.status(401).build(); // Unauthorized
+//            }
+//        }
+//
+//        System.out.println("userId in conversations (from SecurityContextHolder): " + userId);
+//        if ("anonymousUser".equals(userId)) {
+//            return ResponseEntity.status(401).build(); // Explicitly reject anonymous access
+//        }
+//        List<Conversation> conversations = messageService.getUserConversations(userId);
+//        return ResponseEntity.ok(conversations);
+//    }
+//
