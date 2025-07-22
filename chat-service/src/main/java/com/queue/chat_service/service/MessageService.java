@@ -63,9 +63,10 @@ public class MessageService {
     }
 
     public List<User> findAllUsersExcept(String currentUserId) {
-        return userRepository.findAll().stream()
-                .filter(u -> !u.getId().equals(currentUserId))
-                .collect(Collectors.toList());
+//        return userRepository.findAll().stream()
+//                .filter(u -> !u.getId().equals(currentUserId))
+//                .collect(Collectors.toList());
+        return userRepository.findAll();
     }
     public void updateLastOnline(String userId) {
         userRepository.findById(userId).ifPresent(user -> {

@@ -111,6 +111,9 @@
 // export default VerifyOtpPage;
 
 
+
+//some isues
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
@@ -178,15 +181,15 @@ function VerifyOtpPage() {
               'Authorization': `Bearer ${storedToken}`
             });
 
-          // await axios.post(`http://localhost:8084/api/v1/users/provision`, {
-          //   id: storedUserId, // Use userId from localStorage
-          //   phone: phone,
-          // }, {
-          //   headers: {
-          //     'Content-Type': 'application/json',
-          //     'Authorization': `Bearer ${storedToken}` // Use token from localStorage
-          //   }, withCredentials: true // ✅ ADD THIS
-          // });
+          await axios.post(`http://localhost:8084/api/v1/users/provision`, {
+            id: storedUserId, // Use userId from localStorage
+            phone: phone,
+          }, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${storedToken}` // Use token from localStorage
+            }, withCredentials: true // ✅ ADD THIS
+          });
 
           setMessage('User provisioned. Redirecting to chat...');
         } catch (provisionErr) {
