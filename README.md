@@ -1,4 +1,4 @@
 $ git branch
-feature-chatWs
+* feature-chatWs
 * feature-ws-stable
-  main
+* main
