@@ -42,7 +42,7 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
 
                 .authorizeHttpRequests(auth -> auth
-                                .requestMatchers( HttpMethod.OPTIONS, "/**").permitAll() // 💥 allow preflight
+                                .requestMatchers( HttpMethod.OPTIONS, "/**").permitAll() //  allow preflight
                         .requestMatchers("/ws/**").permitAll()
                          .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/users/provision").authenticated()

@@ -1,64 +1,64 @@
-
-package com.queue.chat_service.security; // <--- CHANGED PACKAGE HERE
-
-//import com.queue.chat_service.security.CustomUserDetails;
-import com.queue.chat_service.util.JwtUtil;
-import io.jsonwebtoken.Claims;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails; // Still needed for general UserDetails
-import org.springframework.stereotype.Component; // Still needed for @Component
-import org.springframework.web.filter.OncePerRequestFilter;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Collection;
-
-@Component
-public class TokenAuthenticationFilter extends OncePerRequestFilter {
-
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
-        System.out.println ("filtering started on get Allusers");
-        String authHeader = request.getHeader("Authorization");
-
-        if (authHeader != null && authHeader.startsWith("Bearer ") && SecurityContextHolder.getContext().getAuthentication() == null) {
-            try {
-                Claims claims = jwtUtil.validateAndGetClaims(authHeader);
-
-                String userId = claims.get("userId", String.class);
-                String phone = claims.getSubject(); // usually email or phone
-                String username = claims.get("username", String.class);
-
-                if (userId != null) {
-                    Collection<SimpleGrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
-                    CustomUserDetails customUserDetails = new CustomUserDetails(userId, phone, authorities);
-
-                    UsernamePasswordAuthenticationToken auth =
-                            new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
-
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                    System.out.println ("lets see that on everyhit does it set te auth or not ");
-                    System.out.println (auth);
-                    logger.info("✅ JWT Authenticated userId=" + userId);
-                }
-
-            } catch (Exception e) {
-                logger.error("❌ JWT validation failed: " + e.getMessage());
-            }
-        }
-
-        chain.doFilter(request, response);
-    }
+//
+//package com.queue.chat_service.security; // <--- CHANGED PACKAGE HERE
+//
+////import com.queue.chat_service.security.CustomUserDetails;
+//import com.queue.chat_service.util.JwtUtil;
+//import io.jsonwebtoken.Claims;
+//import jakarta.servlet.FilterChain;
+//import jakarta.servlet.ServletException;
+//import jakarta.servlet.http.HttpServletRequest;
+//import jakarta.servlet.http.HttpServletResponse;
+//import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+//import org.springframework.security.core.context.SecurityContextHolder;
+//import org.springframework.security.core.authority.SimpleGrantedAuthority;
+//import org.springframework.security.core.userdetails.UserDetails; // Still needed for general UserDetails
+//import org.springframework.stereotype.Component; // Still needed for @Component
+//import org.springframework.web.filter.OncePerRequestFilter;
+//import java.io.IOException;
+//import java.util.Collections;
+//import java.util.Collection;
+//
+//@Component
+//public class TokenAuthenticationFilter extends OncePerRequestFilter {
+//
+//    @Autowired
+//    private JwtUtil jwtUtil;
+//
+//    @Override
+//    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+//            throws ServletException, IOException {
+//        System.out.println ("filtering started on get Allusers");
+//        String authHeader = request.getHeader("Authorization");
+//
+//        if (authHeader != null && authHeader.startsWith("Bearer ") && SecurityContextHolder.getContext().getAuthentication() == null) {
+//            try {
+//                Claims claims = jwtUtil.validateAndGetClaims(authHeader);
+//
+//                String userId = claims.get("userId", String.class);
+//                String phone = claims.getSubject(); // usually email or phone
+//                String username = claims.get("username", String.class);
+//
+//                if (userId != null) {
+//                    Collection<SimpleGrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+//                    CustomUserDetails customUserDetails = new CustomUserDetails(userId, phone, authorities);
+//
+//                    UsernamePasswordAuthenticationToken auth =
+//                            new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
+//
+//                    SecurityContextHolder.getContext().setAuthentication(auth);
+//                    System.out.println ("lets see that on everyhit does it set te auth or not ");
+//                    System.out.println (auth);
+//                    logger.info("✅ JWT Authenticated userId=" + userId);
+//                }
+//
+//            } catch (Exception e) {
+//                logger.error("❌ JWT validation failed: " + e.getMessage());
+//            }
+//        }
+//
+//        chain.doFilter(request, response);
+//    }
 
 
 //    @Override
@@ -101,9 +101,70 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 //
 //        chain.doFilter(request, response);
 //    }
+//}
+
+
+
+package com.queue.chat_service.security;
+
+import com.queue.chat_service.util.JwtUtil;
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.Collections;
+
+@Component
+public class TokenAuthenticationFilter extends OncePerRequestFilter {
+
+    @Autowired private JwtUtil jwtUtil;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            throws ServletException, IOException {
+
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            try {
+                String token = authHeader.substring(7);
+                Claims claims = jwtUtil.validateAndGetClaims(token);
+
+                String userId = claims.get("userId", String.class);
+                String phone = claims.getSubject();
+
+                if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    CustomUserDetails userDetails =
+                            new CustomUserDetails(
+                                    userId,
+                                    phone,
+                                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                            );
+
+                    UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
+            } catch (Exception ignored) {
+                // optional: clear context or set 401; usually just continue and let entrypoint handle it
+            }
+        }
+
+        chain.doFilter(request, response);
+    }
 }
-//
-//
+
+
 ///*
 //*
 //*

@@ -61,47 +61,93 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .withSockJS();
     }
 
+//    @Override
+//    public void configureMessageBroker(MessageBrokerRegistry registry) {
+//        registry.setApplicationDestinationPrefixes("/app");
+//        registry.enableSimpleBroker("/chatroom", "/user");
+//        registry.setUserDestinationPrefix("/user");
+//    }
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.setApplicationDestinationPrefixes("/app");
-        registry.enableSimpleBroker("/chatroom", "/user");
+        registry.enableSimpleBroker("/queue", "/topic");
         registry.setUserDestinationPrefix("/user");
     }
 
-    @Override
-    public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(new ChannelInterceptor() {
-            @Override
-            public Message<?> preSend(Message<?> message, MessageChannel channel) {
-                StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
-                if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-                    String authHeader = accessor.getFirstNativeHeader("Authorization");
+//    @Override
+//    public void configureClientInboundChannel(ChannelRegistration registration) {
+//        registration.interceptors(new ChannelInterceptor() {
+//            @Override
+//            public Message<?> preSend(Message<?> message, MessageChannel channel) {
+//                StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+//
+//                if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+//                    String authHeader = accessor.getFirstNativeHeader("Authorization");
+//
+//                    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+//                        throw new IllegalArgumentException("Missing or invalid Authorization header in CONNECT");
+//                    }
+//
+//                    String token = authHeader.substring(7);
+//                    try {
+//                        Claims claims = Jwts.parser()
+//                                .verifyWith(publicKey)
+//                                .build()
+//                                .parseSignedClaims(token)
+//                                .getPayload();
+//
+//                        String userId = claims.get("userId", String.class);
+////                        accessor.setUser(new UsernamePasswordAuthenticationToken(userId, null, List.of()));
+//                        accessor.setUser(() -> userId);
+//
+//                        System.out.println(" WebSocket CONNECT authenticated for userId: " + userId);
+//                    } catch (Exception e) {
+//                        System.err.println(" JWT validation failed during WebSocket CONNECT: " + e.getMessage());
+//                        throw new IllegalArgumentException("Invalid WebSocket token");
+//                    }
+//                }
+//
+//                return message;
+//            }
+//        });
+//    }
 
-                    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                        throw new IllegalArgumentException("Missing or invalid Authorization header in CONNECT");
-                    }
+@Override
+public void configureClientInboundChannel(ChannelRegistration registration) {
+    registration.interceptors(new ChannelInterceptor() {
+        @Override
+        public Message<?> preSend(Message<?> message, MessageChannel channel) {
+            StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
-                    String token = authHeader.substring(7);
-                    try {
-                        Claims claims = Jwts.parser()
-                                .verifyWith(publicKey)
-                                .build()
-                                .parseSignedClaims(token)
-                                .getPayload();
-
-                        String userId = claims.get("userId", String.class);
-                        accessor.setUser(new UsernamePasswordAuthenticationToken(userId, null, List.of()));
-
-                        System.out.println("✅ WebSocket CONNECT authenticated for userId: " + userId);
-                    } catch (Exception e) {
-                        System.err.println("❌ JWT validation failed during WebSocket CONNECT: " + e.getMessage());
-                        throw new IllegalArgumentException("Invalid WebSocket token");
-                    }
+            if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+                String authHeader = accessor.getFirstNativeHeader("Authorization");
+                System.out.println("CONNECT Authorization header websocketconfig class = " + authHeader);
+                if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                    throw new IllegalArgumentException("Missing Authorization header");
                 }
 
-                return message;
+                String token = authHeader.substring(7);
+                Claims claims = Jwts.parser()
+                        .verifyWith(publicKey)
+                        .build()
+                        .parseSignedClaims(token)
+                        .getPayload();
+
+                String userId = claims.get("userId", String.class);
+                if (userId == null || userId.isBlank()) {
+                    throw new IllegalArgumentException("userId missing in token");
+                }
+
+                // IMPORTANT: make Principal.getName() == userId
+                System.out.println("CONNECT userId in websocketconfig= " + userId);
+                accessor.setUser(() -> userId);
             }
-        });
-    }
+
+            return message;
+        }
+    });
+}
+
+
 }
