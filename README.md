@@ -78,6 +78,9 @@ Once all backend services are "UP" in the Eureka dashboard:
 4.  Access the app at `http://localhost:3000`.
 
 ---
+## Demo video (click on the image it will redirect you to video on gDrive)
+
+[![Demo Video](docs/demo.png)](https://drive.google.com/file/d/1GrhMoxBJlxVK7mteAksNpTOxIUWBcHky/view?usp=drive_link)
 
 ##  Configuration Notes
 
