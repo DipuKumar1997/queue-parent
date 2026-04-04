@@ -102,7 +102,9 @@ import com.queue.auth_service.Entity.User;
 import com.queue.auth_service.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import java.security.KeyFactory;
@@ -116,9 +118,15 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JwtUtil {
 
-    private final PrivateKey privateKey = loadPrivateKey();
+    // private final PrivateKey privateKey = loadPrivateKey();
+    private PrivateKey privateKey;
 
-    private final long accessTokenValidity = 15 * 60 * 1000; // 15 min
+    @PostConstruct
+    private void init() {
+        this.privateKey = loadPrivateKey();
+    }
+
+    private final long accessTokenValidity = 150 * 60 * 1000; // 150 min
     private final long refreshTokenValidity = 30L * 24 * 60 * 60 * 1000; // 30 days
 
     private UserRepository userRepository;
@@ -128,17 +136,18 @@ public class JwtUtil {
 //       if (user.isPresent()) {
 //           String userId = String.valueOf ( user.get ().getId () );
 //       }
-
+        System.out.println ("userid during the genartion of the token " + user.getId ());
         // .setSubject (  )
-        return Jwts.builder()
+        String token = Jwts.builder()
                 .claim("userId", user.getId ().toString())
                 .setSubject(user.getPhone())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + accessTokenValidity))
                 .signWith(privateKey, SignatureAlgorithm.RS256)
                 .compact();
+        System.out.println ("token gerated from the userId in auth sservice "+ user.getId ()+ " phone "+ user.getPhone () + " token  " +token);
+        return  token;
     }
-
     public String generateRefreshToken() {
         return Jwts.builder()
                 .setSubject("refresh")
@@ -150,44 +159,14 @@ public class JwtUtil {
 
     private PrivateKey loadPrivateKey() {
         try {
-            String privateKeyPem = """
-                    -----BEGIN PRIVATE KEY-----
-                    MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCOkO7iAjiqgYay
-                    lJJ5rzKllXlVfnLi+ddnYp8Rz5at4qT7eEjNUbszUGZfq/Kqm8IVK5XnPOHw0ez5
-                    SJ4vUsrwxWIHQjrYguy/o285/t/LWlHcG0OpuPb+eYSm7/q0CKVlcBfOPpOm+Adi
-                    sbhDrfwgDgFXCL129bsLWNZjiUmTyx3fJrMQtUhVxUOOByn4WRWSzo9U9iC/CnSi
-                    6aQOn4b4S8zyNZT820sgvxpFv48FaOX7busKd+cQlgiKeQkN/qEOv3OrJOdx5zw5
-                    MqzaZfwIzQ5PS+yRkKwEXwguCt5pkNCBQ/bVDrUDYia6xQNAmIe3Gz54OXjipjoN
-                    Wy9T/ApxAgMBAAECggEABnQP5X9OvoRy9bSiexYfujLthV3I3baMANl2vwkRIR65
-                    iPWNVsKcm/Uc0TdYxSQcUWDXSK/u6qZXWQMSaqzPfr3HPcdfymBbeaLwXGUfDxba
-                    o5aWBeyCEmEAoh2KURR0HNxJrj5oaMjg7V+DP7MJjuTmEXZrPHjhRjaiVmqcP++Y
-                    Rnetare5XGc8CvBluT83a6PVFmb/lZ3ndox50SgLDini91PeXWYWAmrwaYXnE2AY
-                    li0FEiI5p+jhZ+Sn8QsQd0lfHcqqdn53QBAqjS3arA3BcM7/31Rq03aSit27IXrF
-                    EYQ8j5Hj1kSk1qYs/Oq8JafO3AwxFJwgv9cmiim0DQKBgQDC0bHUbszm5aIWADjJ
-                    egu/BVPE3lDeLXoZIOKvMPY+qvZp1hk9xVR0wxUrXp8cB4At/wEEhjXDlMOuLE0r
-                    ex440YIFCQ3dsIpdfGrZkFNCG3PJFus13PHLZTXZIQWzM9m0BmiILGNVZzafnsd7
-                    vIN6fshmLZQossxVq/FZPoUG7QKBgQC7VmiEl9eeSUoYIXYZEnmbbZf0A/7trHA9
-                    5giQhcv0XrZoMJzcHcAduVWquBGtVsNkc3alL4NcB+ryz/WzgJiUnzLEzkb3l0WF
-                    TDz0AErQ8my8zCBdkEmEx1b6GZ3/KOxqYumxZUjph/MybdjBjFjnA+6rhGTawdRE
-                    L0GTaJw9FQKBgCOZvi1bsgXfoKb0k2v96XeWuaAYIB75oH5HDCWHhPgetbjRbvti
-                    u/Q6UfwC5oBwvnOpTb5N6DU9UiTZ46A2d2daoa/Z37bLM/2xZrUrMou6CIaOsZy+
-                    K1FHxXdQGYKNzxKeuStpMR3CJrE0iq+J21zfHi/N1G07fyuIqCnuytBhAoGBALMD
-                    efKiKl9OB2iRqQmCVwRIMHjzzIoPSl5Lz4lS4TdNvh5Hvcy0/R0qOgtdwz6Rdzso
-                    /ooQogSyaDfIsy/pRWRX0CqyNqxnN/6NgH1lPhj2XyP2J0NhGm+wEJQDILBvyaJL
-                    jKaAc7D8wU9CGmuxEk8Gue3aIInNyGmzgoU65HmVAoGBALkRCfaU+BlbXvwdR94b
-                    YYZMTNGUdlyFJejH98Ig/qOfDpJE+jpGilB0eQ5QDewLx2aZ+MP82d+3OW7c0Pr5
-                    kYSEjPkgjM/2f5q2Sm5mKXggiu6pDd3yZwC2XaWFJWlxUAqCvrYQdAKfKGvy/k7g
-                    K/ImO3VfyPSXSqQq8e1VZdnS
-                    -----END PRIVATE KEY-----
-                    """;
-
+            ClassPathResource resource = new ClassPathResource ("private_key.pem");
+            String privateKeyPem = new String(resource.getInputStream().readAllBytes());
             privateKeyPem = privateKeyPem
                     .replace("-----BEGIN PRIVATE KEY-----", "")
                     .replace("-----END PRIVATE KEY-----", "")
                     .replaceAll("\\s+", "");
 
             byte[] keyBytes = Base64.getDecoder().decode(privateKeyPem);
-
             PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
             KeyFactory kf = KeyFactory.getInstance("RSA");
             return kf.generatePrivate(spec);

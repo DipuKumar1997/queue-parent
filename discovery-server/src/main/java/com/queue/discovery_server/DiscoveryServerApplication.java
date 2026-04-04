@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 
 @SpringBootApplication
 @EnableEurekaServer
-@CrossOrigin("*")
+//@CrossOrigin("*")
 public class DiscoveryServerApplication {
 
 	public static void main(String[] args) {

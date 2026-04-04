@@ -12,7 +12,7 @@ package com.queue.auth_service.security;//package com.queue.auth_service.securit
 //import org.springframework.security.core.userdetails.UserDetailsService;
 //import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 //import org.springframework.stereotype.Component;
-//import org.springframework.web.filter.OncePerRequestFilter;
+//import org.springframework.web._filter.OncePerRequestFilter;
 //
 //import java.io.IOException;
 //@Component

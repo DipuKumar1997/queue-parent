@@ -1,0 +1,126 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Private Chat</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+<h2>Private Chat</h2>
+
+<label>Sender ID:</label><input type="text" id="senderId" /><br>
+<label>Recipient ID:</label><input type="text" id="recipientId" /><br>
+<label>Message:</label><input type="text" id="message" />
+<button onclick="sendMessage()">Send</button>
+
+<h3>Messages:</h3>
+<ul id="messages"></ul>
+
+<script>
+    let stompClient = null;
+    let senderId = null;
+
+    function connect() {
+        // const socket = new SockJS('/ws');
+        const socket = new SockJS('http://localhost:8080/ws'); // Correct!
+        stompClient = Stomp.over(socket);
+
+        senderId = document.getElementById("senderId").value;
+
+        stompClient.connect({}, function () {
+            // Subscribe to user's personal queue
+            stompClient.subscribe(`/user/${senderId}/queue/messages`, function (msg) {
+                const message = JSON.parse(msg.body);
+                document.getElementById("messages").innerHTML += `<li><b>${message.senderId}</b>: ${message.content}</li>`;
+            });
+        });
+    }
+
+    function sendMessage() {
+        const recipientId = document.getElementById("recipientId").value;
+        const content = document.getElementById("message").value;
+
+        const payload = {
+            conversationId: [senderId, recipientId].sort().join("-"),
+            senderId: senderId,
+            recipientId: recipientId,
+            content: content
+        };
+
+        stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(payload));
+    }
+
+    // Delay connect so input is filled
+    setTimeout(() => {
+        document.getElementById("senderId").addEventListener("change", connect);
+    }, 1000);
+</script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Private Chat</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+<h2>Private Chat</h2>
+
+<label>Sender ID:</label><input type="text" id="senderId" /><br>
+<label>Recipient ID:</label><input type="text" id="recipientId" /><br>
+<label>Message:</label><input type="text" id="message" />
+<button onclick="sendMessage()">Send</button>
+<button onclick="connect()">Connect</button> 
+
+<h3>Messages:</h3>
+<ul id="messages"></ul>
+
+<script>
+    let stompClient = null;
+    let senderId = null;
+
+    function connect() {
+        if (stompClient && stompClient.connected) return;
+
+        senderId = document.getElementById("senderId").value;
+        if (!senderId) {
+            alert("Please enter Sender ID first");
+            return;
+        }
+
+        // const socket = new SockJS('http://localhost:8080/ws');
+        const socket = new SockJS('http://localhost:8082/ws');
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, function () {
+            // stompClient.subscribe("/user/queue/messages", function (msg) {
+            //     const message = JSON.parse(msg.body);
+            //     document.getElementById("messages").innerHTML += `<li><b>${message.senderId}</b>: ${message.content}</li>`;
+            // });
+            stompClient.subscribe(`/user/${senderId}/queue/messages`, function (msg) {
+            const message = JSON.parse(msg.body);
+            document.getElementById("messages").innerHTML += `<li><b>${message.senderId}</b>: ${message.content}</li>`; 
+            });
+
+            console.log("Connected as", senderId);
+        });
+    }
+
+    function sendMessage() {
+        const recipientId = document.getElementById("recipientId").value;
+        const content = document.getElementById("message").value;
+
+        const payload = {
+            conversationId: [senderId, recipientId].sort().join("-"),
+            senderId: senderId,
+            recipientId: recipientId,
+            content: content
+        };
+
+        stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(payload));
+    }
+</script>
+</body>
+</html>
