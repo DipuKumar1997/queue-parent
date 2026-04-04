@@ -80,7 +80,7 @@ public class AuthServiceImpl implements AuthService {
 //    public AuthResponse refreshAccessToken(RefreshTokenRequest request) {
 //        Token token = tokenRepository.findByUserPhone((request.getPhone())
 //                .stream()
-//                .filter(t -> passwordEncoder.matches(request.getRefreshToken(), t.getRefreshTokenHash()) && t.isValid())
+//                ._filter(t -> passwordEncoder.matches(request.getRefreshToken(), t.getRefreshTokenHash()) && t.isValid())
 //                .findFirst()
 //                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
 //

@@ -118,15 +118,15 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JwtUtil {
 
-//    private final PrivateKey privateKey = loadPrivateKey();
-        private PrivateKey privateKey;
+    // private final PrivateKey privateKey = loadPrivateKey();
+    private PrivateKey privateKey;
 
-            @PostConstruct
-            private void init() {
-                this.privateKey = loadPrivateKey();
-            }
+    @PostConstruct
+    private void init() {
+        this.privateKey = loadPrivateKey();
+    }
 
-    private final long accessTokenValidity = 15 * 60 * 1000; // 15 min
+    private final long accessTokenValidity = 150 * 60 * 1000; // 150 min
     private final long refreshTokenValidity = 30L * 24 * 60 * 60 * 1000; // 30 days
 
     private UserRepository userRepository;
@@ -136,17 +136,18 @@ public class JwtUtil {
 //       if (user.isPresent()) {
 //           String userId = String.valueOf ( user.get ().getId () );
 //       }
-
+        System.out.println ("userid during the genartion of the token " + user.getId ());
         // .setSubject (  )
-        return Jwts.builder()
+        String token = Jwts.builder()
                 .claim("userId", user.getId ().toString())
                 .setSubject(user.getPhone())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + accessTokenValidity))
                 .signWith(privateKey, SignatureAlgorithm.RS256)
                 .compact();
+        System.out.println ("token gerated from the userId in auth sservice "+ user.getId ()+ " phone "+ user.getPhone () + " token  " +token);
+        return  token;
     }
-
     public String generateRefreshToken() {
         return Jwts.builder()
                 .setSubject("refresh")
@@ -160,8 +161,6 @@ public class JwtUtil {
         try {
             ClassPathResource resource = new ClassPathResource ("private_key.pem");
             String privateKeyPem = new String(resource.getInputStream().readAllBytes());
-
-
             privateKeyPem = privateKeyPem
                     .replace("-----BEGIN PRIVATE KEY-----", "")
                     .replace("-----END PRIVATE KEY-----", "")

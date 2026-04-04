@@ -2,11 +2,12 @@ package com.queue.chat_service.security;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
-
 import java.util.Collection;
 
+@Getter
 public class CustomUserDetails extends User {
     private final String userId;
     private final String phoneNumber;
@@ -20,14 +21,6 @@ public class CustomUserDetails extends User {
         super(userId, "", authorities); // Username is userId
         this.userId = userId;
         this.phoneNumber = phoneNumber;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
     }
 
     @Override

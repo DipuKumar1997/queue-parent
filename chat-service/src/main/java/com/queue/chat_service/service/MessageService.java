@@ -64,7 +64,7 @@ public class MessageService {
 
     public List<User> findAllUsersExcept(String currentUserId) {
 //        return userRepository.findAll().stream()
-//                .filter(u -> !u.getId().equals(currentUserId))
+//                ._filter(u -> !u.getId().equals(currentUserId))
 //                .collect(Collectors.toList());
         return userRepository.findAll();
     }
@@ -115,7 +115,9 @@ public class MessageService {
     public Message saveMessage(String conversationId, String senderId, String recipientId, String content) {
         // 1. Create the Message object
         Message newMessage = new Message(conversationId, senderId, recipientId, content);
+        logger.info("Saving message: conversationId={}, senderId={}, recipientId={}, content={}", conversationId, senderId, recipientId, content);
         final Message savedMessage = messageRepository.save(newMessage); // Make it explicitly final or just 'Message savedMessage'
+        System.out.println ("-----------------------------------Message saved with ID: %s"+ savedMessage.getId());
         conversationRepository.findById(conversationId).ifPresent(conv -> {
             conv.setLastMessageText(content);
             conv.setLastMessageSenderId(senderId);

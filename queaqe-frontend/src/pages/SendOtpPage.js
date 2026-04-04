@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// Removed axios import
 
-// Define the API Gateway Base URL globally.
-// This is how environment variables are typically handled in client-side
-// React apps within this Canvas environment.
-const API_GATEWAY_BASE_URL = 'http://localhost:8084'; // Default for local development and testing
-
+const API_GATEWAY_BASE_URL = 'http://localhost:8084';
 console.log(`API Gateway Base URL: ${API_GATEWAY_BASE_URL}`);
 
 /**
@@ -64,7 +59,6 @@ function SendOtpPage() {
           successMessage = textData || successMessage;
           console.warn("Successful response was not JSON. Raw text:", textData);
         }
-        
         setMessage(successMessage);
         console.log("Setting message after success: " + successMessage);
         navigate('/verify-otp', { state: { phone } });
@@ -95,35 +89,9 @@ function SendOtpPage() {
   return (
     <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
       <h2>Login / Request OTP</h2>
-      <input
-        type="text"
-        placeholder="Enter phone number"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-        style={{
-          padding: '8px',
-          marginRight: '10px',
-          border: '1px solid #ccc'
-        }}
-      />
-      <button
-        onClick={handleSendOtp}
-        style={{
-          padding: '8px 15px',
-          cursor: 'pointer',
-          backgroundColor: '#007bff',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px'
-        }}
-      >
-        Send OTP
-      </button>
-      {message && (
-        <p style={{ color: message.startsWith('Error') ? 'red' : 'green' }}>
-          {message}
-        </p>
-      )}
+      <input type="text"  placeholder="Enter phone number"  value={phone}  onChange={(e) => setPhone(e.target.value)}  style={{ padding: '8px',  marginRight: '10px',  border: '1px solid #ccc' }} />
+      <button  onClick={handleSendOtp} style={{ padding: '8px 15px',  cursor: 'pointer',  backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px'}} > Send OTP </button>
+      {message && ( <p style={{ color: message.startsWith('Error') ? 'red' : 'green' }}> {message}</p> )}
     </div>
   );
 }

@@ -58,6 +58,7 @@ public class UserController {
         String currentUserId = principal.getUserId();
         System.out.println (currentUserId);
         List<User> users = messageService.findAllUsersExcept(currentUserId);
+        System.out.println ("getAllOtherUsers method @AuthenticationPrincipal CustomUserDetails principal lets see "+ principal);
         return ResponseEntity.ok(users);
     }
 }

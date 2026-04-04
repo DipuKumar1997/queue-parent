@@ -1,35 +1,3 @@
-//package com.queue.chat_service.model;
-//
-//import jakarta.persistence.*;
-//import lombok.Data;
-//import java.time.LocalDateTime;
-//import java.util.Set;
-//
-//@Entity
-//@Table(name = "conversations", uniqueConstraints = @UniqueConstraint(columnNames = {"user1_id", "user2_id"}))
-//@Data
-//public class Conversation {
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
-//    private Long id;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "user1_id", nullable = false)
-//    private User user1; // The user with the smaller ID
-//    @ManyToOne
-//    @JoinColumn(name = "user2_id", nullable = false)
-//    private User user2; // The user with the larger ID
-//
-//    private LocalDateTime createdAt;
-//
-//    @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    private Set<Message> messages;
-//
-//    @PrePersist
-//    protected void onCreate() {
-//        createdAt = LocalDateTime.now();
-//    }
-//}
 package com.queue.chat_service.model;
 
 import lombok.Data;
@@ -39,9 +7,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Data
