@@ -103,7 +103,7 @@ resource "aws_lb_listener_rule" "chat_route" {
 
   condition {
     path_pattern {
-      values = ["/api/v1/users*", "/ws*"]
+      values = ["/api/v1/users*", "/api/v1/chat*", "/ws*"]
     }
   }
 }
