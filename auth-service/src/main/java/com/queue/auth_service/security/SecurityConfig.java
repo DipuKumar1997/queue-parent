@@ -49,6 +49,7 @@ package com.queue.auth_service.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -73,7 +74,9 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable) // ✅ correct modern style
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers( HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/actuator/**", "/actuator/health").permitAll()
+                                .requestMatchers("/api/v1/auth/**").permitAll()
                         .anyRequest().denyAll()
                 )
                 .build();
