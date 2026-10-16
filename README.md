@@ -1,104 +1,85 @@
+# Real-Time Microservices Chat Platform
 
-# Chat Microservices Application
-
-This project is a real-time chat platform built with a Microservices architecture using **Spring Boot**, **Spring Cloud**, **React**, and **WebSockets (STOMP)**.
-
----
-
-##  Service Architecture & Port Mapping
-
-| Service | Port | Description |
-| :--- | :--- | :--- |
-| **Discovery Server** | `8761` | Eureka Server for service registration. |
-| **API Gateway** | `8084` | Main entry point for all REST calls. |
-| **Chat Service** | `8082` | Handles WebSocket connections and messaging logic. |
-| **Auth Service** | `8081` | Handles OTP generation and JWT validation. |
-| **React Frontend** | `3000` | The user interface. |
+A cloud-native, real-time chat platform built with **Spring Boot 3**, **React**, **MongoDB Atlas**, and **WebSockets (STOMP)**. Fully containerized and deployed on **AWS ECS Fargate** using **Terraform (IaC)** and automated through **GitHub Actions (CI/CD)**.
 
 ---
 
-## 🛠 Prerequisites
+## 🏗️ Architecture & AWS Infrastructure
 
-1.  **PostgreSQL**: Ensure you have a PostgreSQL instance running.
-2.  **Databases**: You must manually create the following databases before starting the services (as defined in your `application.yaml` files):
-    * `auth_db`
-    * `chatdb`(mongo db )
-3.  **Docker**: Installed and running for infrastructure components.
+The application follows an event-driven microservices architecture using direct **AWS Application Load Balancer (ALB)** path-based routing, eliminating gateway latency and server overhead.
+
+```text
+                               +----------------------------------+
+                               |  AWS Application Load Balancer   |
+                               +----------------------------------+
+                                                |
+          +-------------------------------------+-------------------------------------+
+          |                                     |                                     |
+   (Path: /*)                           (Path: /api/v1/auth/*)               (Path: /api/v1/chat*, /ws*)
+          |                                     |                                     |
+          v                                     v                                     v
++------------------+                   +------------------+                   +------------------+
+| Frontend Service |                   |   Auth Service   |                   |   Chat Service   |
+| (Nginx / React)  |                   |  (Spring Boot)   |                   |  (Spring Boot)   |
++------------------+                   +------------------+                   +------------------+
+                                                                                        |
+                                                                                        v
+                                                                               +------------------+
+                                                                               |  MongoDB Atlas   |
+                                                                               +------------------+
+```
 
 ---
 
-##  Step 1: Infrastructure (Docker Compose)
+## 🚦 ALB Path Routing Matrix
 
-Before running the Java services, start the required infrastructure (PostgreSQL, Kafka, Zookeeper) using the Docker Compose file located in the Chat Application directory.
+| Service | Target Port | ALB Path Patterns | Description |
+| :--- | :--- | :--- | :--- |
+| **Frontend** | `80` | `/*` (Default) | Serves compiled static React SPA via Nginx container. |
+| **Auth Service** | `8081` | `/api/v1/auth/*` | Handles OTP generation, verification, and JWT issuance. |
+| **Chat Service** | `8082` | `/api/v1/chat*`, `/api/v1/users*`, `/ws*` | Manages messaging, user profiles, and STOMP WebSockets. |
+
+---
+
+## 🛠️ Tech Stack
+
+- **Backend:** Spring Boot 3, Spring Security (Stateless JWT), Spring Data MongoDB, WebSocket (STOMP)
+- **Frontend:** React, SockJS / STOMP Client, Nginx
+- **Database:** MongoDB Atlas
+- **Cloud Infrastructure (AWS):** ECS Fargate, Application Load Balancer (ALB), ECR, VPC, Subnets, SSM Parameter Store
+- **Infrastructure as Code (IaC):** Terraform
+- **CI/CD Pipeline:** GitHub Actions (Maven builds, multi-stage Docker containerization, ECR push, zero-downtime ECS rolling updates)
+
+---
+
+## 🔒 Security & Configuration
+
+- **Stateless JWT Security:** Unified cross-service authorization with custom security filters.
+- **Secrets Management:** Zero hardcoded credentials; environment variables dynamically fetched from **AWS SSM Parameter Store** at container startup.
+- **ALB Health Monitoring:** Dedicated `/actuator/health` endpoint checks for ECS automated task recovery.
+
+---
+
+## 🚀 CI/CD & Infrastructure Provisioning
+
+### Automated CI/CD (GitHub Actions)
+Every commit pushed to `main` automatically triggers the GitHub Actions workflow:
+1. **Build & Test:** Compiles Maven artifacts and builds React production bundles.
+2. **Containerize:** Creates optimized multi-stage Docker images and pushes them to **AWS ECR**.
+3. **Deploy:** Executes `aws ecs update-service` for zero-downtime rolling deployments.
+
+### Infrastructure Provisioning (Terraform)
+To spin up or update the full AWS infrastructure:
 
 ```bash
-# Navigate to your chat service directory
-cd chat-service
-
-# Start infrastructure
-docker-compose up -d
+cd terraform
+terraform init
+terraform plan
+terraform apply -auto-approve
 ```
 
 ---
 
-##  Step 2: Running the Backend Services
-
-**Important:** Run the services in the following specific order to ensure proper registration and routing.
-
-### 1. Discovery Server (Eureka)
-* **Port:** `8761`
-* Wait until the dashboard is accessible at `http://localhost:8761`.
-
-### 2. API Gateway
-* **Port:** `8084`
-* All frontend requests (REST) should point here. It routes traffic to the appropriate service.
-
-### 3. Auth, User, and Chat Services
-* **Auth Service:** `8081`
-* **Chat Service:** `8082` (Handles the `/ws` endpoint)
-
----
-
-## 💻 Step 3: Running the Frontend
-
-Once all backend services are "UP" in the Eureka dashboard:
-
-1.  Navigate to the frontend directory:
-    ```bash
-    cd chat-frontend
-    ```
-2.  Install dependencies:
-    ```bash
-    npm install
-    ```
-3.  Start the application:
-    ```bash
-    npm start
-    ```
-4.  Access the app at `http://localhost:3000`.
-
----
-## Demo video (click on the image it will redirect you to video on gDrive)
+## 📹 Demo
 
 [![Demo Video](docs/demo.png)](https://drive.google.com/file/d/1GrhMoxBJlxVK7mteAksNpTOxIUWBcHky/view?usp=drive_link)
-
-##  Configuration Notes
-
-### Database Creation
-If the services fail to start, verify your `application.yaml` settings. Ensure the `spring.datasource.url` points to the correct database name you created in Step 1.
-Example: `jdbc:postgresql://localhost:5432/chat_db`
-
-### WebSocket Connection
-The React frontend connects directly to the **Chat Service** for WebSockets:
-* **URL:** `ws://localhost:8082/ws`
-* **Auth:** Requires a `Bearer` token in the `connectHeaders`.
-
-### REST API Calls
-The React frontend communicates through the **Gateway**:
-* **Base URL:** `http://localhost:8084`
-```
-
----
-
-### Troubleshooting Tip:
-If the **Discovery Server** shows the services as "UP" but the **Gateway** gives a `503 Service Unavailable`, wait 30 seconds. The Gateway needs a moment to refresh its internal routing table from Eureka.
