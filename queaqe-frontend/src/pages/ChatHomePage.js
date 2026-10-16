@@ -4,8 +4,16 @@ import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 import './ChatHomePage.css';
 
-const BACKEND_URI = "http://localhost:8084"; // Gateway
-const WEBSOCKET_URL = "http://localhost:8082/ws"; // Direct to Chat Service
+// const BACKEND_URI = "http://localhost:8084"; // Gateway
+// const BACKEND_URI = process.env.REACT_APP_API_GATEWAY_URL || "http://localhost:8084";
+// const WEBSOCKET_URL = "http://localhost:8082/ws"; // Direct to Chat Service
+
+// const WEBSOCKET_URL = `${BACKEND_URI}/ws`;
+const BACKEND_URI = "";
+
+// For SockJS / STOMP WebSocket connection:
+const WEBSOCKET_URL = "/ws";
+
 
 function ChatHomePage() {
   const jwtToken = localStorage.getItem('jwtToken');

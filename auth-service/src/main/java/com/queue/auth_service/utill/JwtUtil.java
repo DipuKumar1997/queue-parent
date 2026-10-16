@@ -95,16 +95,98 @@
 //}
 
 
+//
+//package com.queue.auth_service.utill;
+//
+//import com.queue.auth_service.Entity.User;
+//import com.queue.auth_service.repository.UserRepository;
+//import io.jsonwebtoken.Jwts;
+//import io.jsonwebtoken.SignatureAlgorithm;
+//import jakarta.annotation.PostConstruct;
+//import lombok.RequiredArgsConstructor;
+//import org.springframework.core.io.ClassPathResource;
+//import org.springframework.stereotype.Component;
+//
+//import java.security.KeyFactory;
+//import java.security.PrivateKey;
+//import java.security.spec.PKCS8EncodedKeySpec;
+//import java.util.Base64;
+//import java.util.Date;
+//import java.util.Optional;
+//
+//@Component
+//@RequiredArgsConstructor
+//public class JwtUtil {
+//
+//    // private final PrivateKey privateKey = loadPrivateKey();
+//    private PrivateKey privateKey;
+//
+//    @PostConstruct
+//    private void init() {
+//        this.privateKey = loadPrivateKey();
+//    }
+//
+//    private final long accessTokenValidity = 150 * 60 * 1000; // 150 min
+//    private final long refreshTokenValidity = 30L * 24 * 60 * 60 * 1000; // 30 days
+//
+//    private UserRepository userRepository;
+//
+//    public String generateAccessToken(User user) {
+////       Optional<User> user =  userRepository.findByPhone(phone);
+////       if (user.isPresent()) {
+////           String userId = String.valueOf ( user.get ().getId () );
+////       }
+//        System.out.println ("userid during the genartion of the token " + user.getId ());
+//        // .setSubject (  )
+//        String token = Jwts.builder()
+//                .claim("userId", user.getId ().toString())
+//                .setSubject(user.getPhone())
+//                .setIssuedAt(new Date())
+//                .setExpiration(new Date(System.currentTimeMillis() + accessTokenValidity))
+//                .signWith(privateKey, SignatureAlgorithm.RS256)
+//                .compact();
+//        System.out.println ("token gerated from the userId in auth sservice "+ user.getId ()+ " phone "+ user.getPhone () + " token  " +token);
+//        return  token;
+//    }
+//    public String generateRefreshToken() {
+//        return Jwts.builder()
+//                .setSubject("refresh")
+//                .setIssuedAt(new Date())
+//                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenValidity))
+//                .signWith(privateKey, SignatureAlgorithm.RS256)
+//                .compact();
+//    }
+//
+//    private PrivateKey loadPrivateKey() {
+//        try {
+//            ClassPathResource resource = new ClassPathResource ("private_key.pem");
+//            String privateKeyPem = new String(resource.getInputStream().readAllBytes());
+//            privateKeyPem = privateKeyPem
+//                    .replace("-----BEGIN PRIVATE KEY-----", "")
+//                    .replace("-----END PRIVATE KEY-----", "")
+//                    .replaceAll("\\s+", "");
+//
+//            byte[] keyBytes = Base64.getDecoder().decode(privateKeyPem);
+//            PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
+//            KeyFactory kf = KeyFactory.getInstance("RSA");
+//            return kf.generatePrivate(spec);
+//        } catch (Exception e) {
+//            throw new RuntimeException("Failed to load private key", e);
+//        }
+//    }
+//}
+
+
+
+
 
 package com.queue.auth_service.utill;
 
 import com.queue.auth_service.Entity.User;
-import com.queue.auth_service.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.KeyFactory;
@@ -112,42 +194,40 @@ import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.Date;
-import java.util.Optional;
 
 @Component
-@RequiredArgsConstructor
 public class JwtUtil {
 
-    // private final PrivateKey privateKey = loadPrivateKey();
+    // Reads raw PEM string from environment variable JWT_PRIVATE_KEY or application.yml
+    @Value("${jwt.private-key:}")
+    private String privateKeyPem;
+
     private PrivateKey privateKey;
+
+    private final long accessTokenValidity = 150L * 60 * 1000; // 150 minutes
+    private final long refreshTokenValidity = 30L * 24 * 60 * 60 * 1000; // 30 days
 
     @PostConstruct
     private void init() {
         this.privateKey = loadPrivateKey();
     }
 
-    private final long accessTokenValidity = 150 * 60 * 1000; // 150 min
-    private final long refreshTokenValidity = 30L * 24 * 60 * 60 * 1000; // 30 days
-
-    private UserRepository userRepository;
-
     public String generateAccessToken(User user) {
-//       Optional<User> user =  userRepository.findByPhone(phone);
-//       if (user.isPresent()) {
-//           String userId = String.valueOf ( user.get ().getId () );
-//       }
-        System.out.println ("userid during the genartion of the token " + user.getId ());
-        // .setSubject (  )
+        System.out.println("userid during the generation of the token " + user.getId());
+
         String token = Jwts.builder()
-                .claim("userId", user.getId ().toString())
+                .claim("userId", user.getId().toString())
                 .setSubject(user.getPhone())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + accessTokenValidity))
                 .signWith(privateKey, SignatureAlgorithm.RS256)
                 .compact();
-        System.out.println ("token gerated from the userId in auth sservice "+ user.getId ()+ " phone "+ user.getPhone () + " token  " +token);
-        return  token;
+
+        System.out.println("token generated from the userId in auth service " + user.getId()
+                + " phone " + user.getPhone() + " token " + token);
+        return token;
     }
+
     public String generateRefreshToken() {
         return Jwts.builder()
                 .setSubject("refresh")
@@ -159,14 +239,18 @@ public class JwtUtil {
 
     private PrivateKey loadPrivateKey() {
         try {
-            ClassPathResource resource = new ClassPathResource ("private_key.pem");
-            String privateKeyPem = new String(resource.getInputStream().readAllBytes());
-            privateKeyPem = privateKeyPem
+            if (privateKeyPem == null || privateKeyPem.isBlank()) {
+                throw new IllegalStateException("JWT private key is missing. Set the 'JWT_PRIVATE_KEY' environment variable or 'jwt.private-key' property.");
+            }
+
+            String cleanPem = privateKeyPem
                     .replace("-----BEGIN PRIVATE KEY-----", "")
                     .replace("-----END PRIVATE KEY-----", "")
-                    .replaceAll("\\s+", "");
+                    .replace("-----BEGIN RSA PRIVATE KEY-----", "")
+                    .replace("-----END RSA PRIVATE KEY-----", "")
+                    .replaceAll("\\s+", ""); // Strips spaces, \n, and \r
 
-            byte[] keyBytes = Base64.getDecoder().decode(privateKeyPem);
+            byte[] keyBytes = Base64.getDecoder().decode(cleanPem);
             PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
             KeyFactory kf = KeyFactory.getInstance("RSA");
             return kf.generatePrivate(spec);

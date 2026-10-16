@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: ${SERVER_PORT:8081}
 
 spring:
   application:
@@ -8,19 +8,23 @@ spring:
     exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
 
   datasource:
-    url: jdbc:mysql://localhost:3306/queaqe
-    username: root
-    password: root123
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:queaqe}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:YourStrongPassword123!}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: ${JPA_SHOW_SQL:true}
     properties:
       hibernate:
         format_sql: false
     database-platform: org.hibernate.dialect.MySQL8Dialect
+#jwt:
+#  private-key: ${JWT_PRIVATE_KEY:${jwt.private-key:}}
+jwt:
+  private-key: ${JWT_PRIVATE_KEY:}
 #eureka:
 #  client:
 #    service-url:

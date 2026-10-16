@@ -22,7 +22,9 @@ public class Token {
     @ManyToOne
     private User user;
 
-    @Column(nullable = false)
+//    @Column(nullable = false)
+//    private String refreshToken;
+    @Column(name = "refresh_token", columnDefinition = "TEXT", nullable = false)
     private String refreshToken;
 
     private String deviceInfo;

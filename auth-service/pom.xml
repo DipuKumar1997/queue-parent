@@ -21,7 +21,9 @@
 
     <properties>
         <!-- Set Java version to 23 for compatibility -->
-        <java.version>23</java.version>
+        <java.version>17</java.version>
+         <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
         <!-- Keep Spring Cloud version for consistency if this service is part of a larger cloud system -->
         <spring-cloud.version>2023.0.1</spring-cloud.version>
         <!-- JJWT version (0.12.6 is the current stable and supports modern API usage) -->
@@ -82,10 +84,10 @@
         </dependency>
 
         <!-- Optional: For service discovery if used with Eureka/Spring Cloud ecosystem -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.cloud</groupId>-->
+<!--            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -102,7 +104,6 @@
         </dependency>
     </dependencies>
 
-    <!-- Dependency Management for Spring Cloud. Ensures consistent versions across cloud components. -->
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -117,7 +118,6 @@
 
     <build>
         <plugins>
-            <!-- Spring Boot Maven Plugin: Creates executable JARs and manages application startup -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

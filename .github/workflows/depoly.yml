@@ -1,0 +1,68 @@
+name: Deploy Microservices to AWS ECS
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: ap-south-1
+  ECS_CLUSTER: queue-cluster
+
+jobs:
+  deploy:
+    name: Build, Push, and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set up JDK 17 (for Maven Builds)
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # 1. Build and Deploy Auth Service
+      - name: Build & Deploy Auth Service
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          cd auth-service
+          mvn clean package -DskipTests
+          docker build -t $ECR_REGISTRY/queue-auth-service:latest .
+          docker push $ECR_REGISTRY/queue-auth-service:latest
+          aws ecs update-service --cluster ${{ env.ECS_CLUSTER }} --service auth-service --force-new-deployment --region ${{ env.AWS_REGION }}
+
+      # 2. Build and Deploy Chat Service
+      - name: Build & Deploy Chat Service
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          cd chat-service
+          mvn clean package -DskipTests
+          docker build -t $ECR_REGISTRY/queue-chat-service:latest .
+          docker push $ECR_REGISTRY/queue-chat-service:latest
+          aws ecs update-service --cluster ${{ env.ECS_CLUSTER }} --service chat-service --force-new-deployment --region ${{ env.AWS_REGION }}
+
+      # 3. Build and Deploy Frontend
+      - name: Build & Deploy Frontend
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          cd queaqe-frontend
+          docker build -t $ECR_REGISTRY/queue-frontend:latest .
+          docker push $ECR_REGISTRY/queue-frontend:latest
+          aws ecs update-service --cluster ${{ env.ECS_CLUSTER }} --service frontend --force-new-deployment --region ${{ env.AWS_REGION }}

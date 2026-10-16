@@ -1,0 +1,24 @@
+# Build and target artifacts
+target/
+*.jar
+*.war
+*.class
+node_modules/
+build/
+dist/
+
+# Environment files and keys
+.env
+*.pem
+*.key
+
+# IDE and OS files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Terraform state
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
