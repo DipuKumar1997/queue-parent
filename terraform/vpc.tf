@@ -169,7 +169,7 @@ resource "aws_vpc_endpoint" "ssm" {
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.ap-south-1.ssm"
   vpc_endpoint_type   = "Interface"
-  security_group_ids  = [aws_security_group.ecs_tasks_sg.id]
+  security_group_ids  = [aws_security_group.vpc_endpoints_sg.id]
   subnet_ids          = [aws_subnet.public_1.id, aws_subnet.public_2.id]
   private_dns_enabled = true
 }
@@ -178,7 +178,7 @@ resource "aws_vpc_endpoint" "ecr_api" {
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.ap-south-1.ecr.api"
   vpc_endpoint_type   = "Interface"
-  security_group_ids  = [aws_security_group.ecs_tasks_sg.id]
+  security_group_ids  = [aws_security_group.vpc_endpoints_sg.id]
   subnet_ids          = [aws_subnet.public_1.id, aws_subnet.public_2.id]
   private_dns_enabled = true
 }
@@ -187,7 +187,7 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.ap-south-1.ecr.dkr"
   vpc_endpoint_type   = "Interface"
-  security_group_ids  = [aws_security_group.ecs_tasks_sg.id]
+  security_group_ids  = [aws_security_group.vpc_endpoints_sg.id]
   subnet_ids          = [aws_subnet.public_1.id, aws_subnet.public_2.id]
   private_dns_enabled = true
 }
@@ -203,7 +203,7 @@ resource "aws_vpc_endpoint" "logs" {
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.ap-south-1.logs"
   vpc_endpoint_type   = "Interface"
-  security_group_ids  = [aws_security_group.ecs_tasks_sg.id]
+  security_group_ids  = [aws_security_group.vpc_endpoints_sg.id]
   subnet_ids          = [aws_subnet.public_1.id, aws_subnet.public_2.id]
   private_dns_enabled = true
 }
