@@ -40,7 +40,7 @@ resource "aws_lb_target_group" "auth_service" {
     unhealthy_threshold = 3
     timeout             = 5
     interval            = 30
-    matcher             = "200-499"
+    matcher             = "200"
   }
 }
 
@@ -58,7 +58,7 @@ resource "aws_lb_target_group" "chat_service" {
     unhealthy_threshold = 3
     timeout             = 5
     interval            = 30
-    matcher             = "200-499"
+    matcher             = "200"
   }
 }
 
@@ -103,13 +103,7 @@ resource "aws_lb_listener_rule" "chat_route" {
 
   condition {
     path_pattern {
-      values = ["/api/v1/users/*", "/ws/*", "/ws/**"]
+      values = ["/api/v1/users*", "/ws*"]
     }
   }
-}
-
-# Output the ALB DNS Name
-output "alb_dns_name" {
-  value       = aws_lb.main.dns_name
-  description = "Access your application at this URL"
 }

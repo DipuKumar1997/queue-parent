@@ -39,6 +39,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 }
             } catch (Exception ignored) {
+                SecurityContextHolder.clearContext(); // Explicitly clear invalid auth context
                 // clear context or set 401; usually just continue and let entrypoint handle it
             }
         }
